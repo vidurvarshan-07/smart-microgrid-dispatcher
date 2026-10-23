@@ -1,7 +1,7 @@
 /**
  * SMART POWER ROUTING & LOAD BALANCING SYSTEM
  * Microgrid Dispatcher Client Logic & OOP Simulation Engine
- * Team 4: Jeevanayagam S, Vidurvarshan S A, Yerribandi Pavani
+ * Author: Vidurvarshan S A
  */
 
 // ==========================================

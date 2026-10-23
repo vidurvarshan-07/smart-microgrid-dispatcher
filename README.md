@@ -6,13 +6,11 @@
 
 ---
 
-## 👥 Project Team (Team 4)
+## 👤 Project Author
 
-| Member | Registration No. | Assigned Classes & Modules | Responsibilities |
+| Author | Registration No. | Project Scope | Responsibilities |
 | :--- | :--- | :--- | :--- |
-| **Jeevanayagam S** | `CB.EN.U4ELC25015` | `EnergySource`, `SolarPlant`, `WindTurbine` | Energy Source Modelling, Flowchart & Documentation |
-| **Vidurvarshan S A** | `CB.EN.U4ELC25046` | `BatteryStorage`, `MainGridBackup`, `ConsumerGrid` | Storage & Demand Management, Test Scenarios & Sample Data |
-| **Yerribandi Pavani** | `CB.EN.U4ELC25052` | `PowerDispatcher` | Dispatch & Load Balancing, Console Dashboard, Integration & Class Diagram |
+| **Vidurvarshan S A** | `CB.EN.U4ELC25046` | Full Microgrid Dispatcher System | Object-Oriented System Architecture, Load Balancing Dispatcher, Battery & Renewable Models, and Live Web Dashboard |
 
 ---
 
