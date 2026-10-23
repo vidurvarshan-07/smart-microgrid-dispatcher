@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Power Routing & Load Balancing System | OOP Microgrid Dispatcher</title>
+  <meta name="description" content="An interactive object-oriented microgrid dispatcher dashboard that balances renewable supply and consumer demand in real time with battery storage and main grid backstop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+
+  <!-- Header & Top Navigation -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+      </div>
+      <div class="title-group">
+        <div class="badge-row">
+          <span class="project-pill">OOP MICROGRID</span>
+          <span class="team-pill">TEAM 4</span>
+          <span class="status-indicator-live" id="connection-status">
+            <span class="pulse-dot"></span> LIVE DISPATCHER
+          </span>
+        </div>
+        <h1 class="main-title">Smart Power Routing & Load Balancing System</h1>
+        <p class="sub-title">Object-Oriented Microgrid Dispatcher — Renewable Priority, Priority-Tiered Loads & Battery Buffering</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-config" class="btn btn-secondary" title="Configure Asset Capacities">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        System Specs
+      </button>
+      <button id="btn-step" class="btn btn-primary" title="Trigger 1 Dispatch Cycle">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        Step Cycle
+      </button>
+      <button id="btn-autorun" class="btn btn-accent" title="Auto-run continuous simulation">
+        <svg id="autorun-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        <span id="autorun-text">Auto Run</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Problem & Grid State Monitoring Banner -->
+  <section class="grid-status-banner" id="status-banner">
+    <div class="status-main">
+      <div class="status-icon-box" id="status-icon-box">
+        <svg id="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline>
+        </svg>
+      </div>
+      <div class="status-text-group">
+        <div class="status-tag" id="status-tag">SYSTEM STATUS: OPTIMAL</div>
+        <div class="status-headline" id="status-headline">Renewable Generation Fully Covering Demand</div>
+        <div class="status-sub" id="status-sub">Zero grid emissions & surplus actively directed to energy storage.</div>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Badges -->
+    <div class="telemetry-grid">
+      <div class="telemetry-pill">
+        <span class="label">CYCLE</span>
+        <span class="value" id="val-cycle">1</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">GRID FREQ</span>
+        <span class="value" id="val-freq">50.00 Hz</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">CLEAN ENERGY</span>
+        <span class="value accent-green" id="val-clean-pct">100%</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">CO₂ OFFSET</span>
+        <span class="value accent-cyan" id="val-co2">640 kg/h</span>
+      </div>
+      <div class="telemetry-pill">
+        <span class="label">GRID BALANCE</span>
+        <span class="value" id="val-balance">0.00 kW</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Dashboard Grid -->
+  <main class="dashboard-layout">
+    
+    <!-- LEFT PANEL: Dynamic Sensors & Live Controls -->
+    <aside class="panel controls-panel">
+      <div class="panel-header">
+        <h2>
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          Sensor Inputs & Demand
+        </h2>
+        <span class="subtext">Simulating real-time inputs</span>
+      </div>
+
+      <!-- Weather / Renewable Generation Inputs -->
+      <div class="control-section">
+        <h3 class="section-title">
+          <span class="dot-indicator dot-amber"></span>
+          Environmental Sensors
+        </h3>
+        
+        <!-- Solar Irradiance Slider -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <span class="slider-label">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>
+              Sun Intensity
+            </span>
+            <span class="slider-val" id="disp-sun">85%</span>
+          </div>
+          <input type="range" id="input-sun" min="0" max="100" value="85" step="1" class="slider-amber">
+          <div class="slider-marks">
+            <span>0% (Night)</span>
+            <span>50% (Cloudy)</span>
+            <span>100% (Full Sun)</span>
+          </div>
+          <div class="calc-indicator">
+            Output: <strong id="calc-solar-kw">425.0 kW</strong> <span class="calc-meta">(Cap: 500 kW)</span>
+          </div>
+        </div>
+
+        <!-- Wind Speed Slider -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <span class="slider-label">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>
+              Wind Speed
+            </span>
+            <span class="slider-val" id="disp-wind">8.5 m/s</span>
+          </div>
+          <input type="range" id="input-wind" min="0" max="30" value="8.5" step="0.5" class="slider-cyan">
+          <div class="slider-marks">
+            <span title="Cut-in: 3 m/s">Cut-in (3)</span>
+            <span title="Rated: 12 m/s">Rated (12)</span>
+            <span title="Cut-out: 25 m/s">Cut-out (25)</span>
+          </div>
+          <div class="calc-indicator">
+            Output: <strong id="calc-wind-kw">115.8 kW</strong> <span class="calc-meta">(Cubic Curve)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Consumer Demand Inputs -->
+      <div class="control-section">
+        <h3 class="section-title">
+          <span class="dot-indicator dot-indigo"></span>
+          Consumer Grid Demand (Sectors)
+        </h3>
+
+        <!-- P1: Industrial Zone & Hospital -->
+        <div class="slider-group priority-p1">
+          <div class="slider-header">
+            <span class="slider-label">
+              <span class="badge-priority p1">P1</span>
+              Industrial & Critical
+            </span>
+            <span class="slider-val" id="disp-dem-ind">220 kW</span>
+          </div>
+          <input type="range" id="input-dem-ind" min="0" max="800" value="220" step="10" class="slider-red">
+          <div class="served-status" id="served-ind">
+            Status: <span class="badge-ok">100% Served (220 kW)</span>
+          </div>
+        </div>
+
+        <!-- P2: Commercial District -->
+        <div class="slider-group priority-p2">
+          <div class="slider-header">
+            <span class="slider-label">
+              <span class="badge-priority p2">P2</span>
+              Commercial District
+            </span>
+            <span class="slider-val" id="disp-dem-com">130 kW</span>
+          </div>
+          <input type="range" id="input-dem-com" min="0" max="600" value="130" step="10" class="slider-yellow">
+          <div class="served-status" id="served-com">
+            Status: <span class="badge-ok">100% Served (130 kW)</span>
+          </div>
+        </div>
+
+        <!-- P3: Residential City -->
+        <div class="slider-group priority-p3">
+          <div class="slider-header">
+            <span class="slider-label">
+              <span class="badge-priority p3">P3</span>
+              Residential City
+            </span>
+            <span class="slider-val" id="disp-dem-res">150 kW</span>
+          </div>
+          <input type="range" id="input-dem-res" min="0" max="700" value="150" step="10" class="slider-green">
+          <div class="served-status" id="served-res">
+            Status: <span class="badge-ok">100% Served (150 kW)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Presets -->
+      <div class="control-section">
+        <h3 class="section-title">
+          <span class="dot-indicator dot-violet"></span>
+          Operational Profiles
+        </h3>
+        <div class="preset-grid">
+          <button class="btn-preset" data-scenario="sunny-day">☀️ Solar Surplus</button>
+          <button class="btn-preset" data-scenario="calm-night">🌙 Night Deficit</button>
+          <button class="btn-preset" data-scenario="storm-cutoff">🌪️ Gale Cut-out</button>
+          <button class="btn-preset" data-scenario="heavy-surge">🚨 Peak Surge</button>
+          <button class="btn-preset" data-scenario="high-surplus">🔋 Full Battery</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER PANEL: Interactive Microgrid Power Routing Schematic -->
+    <section class="panel center-panel">
+      <div class="panel-header">
+        <div class="header-with-badge">
+          <h2>
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            Interactive Power Routing & Balancing Schematic
+          </h2>
+          <span class="badge-mode" id="badge-distribution-mode">PRIORITY DISPATCH</span>
+        </div>
+        <div class="flow-legend">
+          <span class="legend-item"><span class="dot-amber"></span> Solar</span>
+          <span class="legend-item"><span class="dot-cyan"></span> Wind</span>
+          <span class="legend-item"><span class="dot-emerald"></span> Battery</span>
+          <span class="legend-item"><span class="dot-indigo"></span> Utility Grid</span>
+        </div>
+      </div>
+
+      <!-- Interactive SVG Flow Canvas -->
+      <div class="schematic-container">
+        <svg id="microgrid-svg" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet" class="microgrid-svg">
+          <defs>
+            <!-- Glow Filters -->
+            <filter id="glow-amber" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <filter id="glow-emerald" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <filter id="glow-indigo" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+
+            <!-- Gradient Links -->
+            <linearGradient id="grad-solar-hub" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+            <linearGradient id="grad-wind-hub" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#06b6d4"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+            <linearGradient id="grad-batt-hub" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#10b981"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+            <linearGradient id="grad-grid-hub" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+
+          <!-- POWER FEEDER WIRES (PATHS) -->
+          <!-- Solar -> Dispatcher -->
+          <path id="path-solar" class="power-wire wire-solar" d="M 160 85 C 280 85, 340 190, 420 210" />
+          <!-- Wind -> Dispatcher -->
+          <path id="path-wind" class="power-wire wire-wind" d="M 160 210 C 260 210, 340 215, 420 220" />
+          <!-- Utility Grid -> Dispatcher -->
+          <path id="path-backup" class="power-wire wire-backup" d="M 160 345 C 280 345, 340 250, 420 230" />
+          <!-- Battery <-> Dispatcher (Bidirectional) -->
+          <path id="path-battery" class="power-wire wire-battery" d="M 450 325 L 450 260" />
+
+          <!-- Dispatcher -> P1 Industrial -->
+          <path id="path-p1" class="power-wire wire-load-p1" d="M 480 210 C 560 190, 620 85, 740 85" />
+          <!-- Dispatcher -> P2 Commercial -->
+          <path id="path-p2" class="power-wire wire-load-p2" d="M 480 220 C 560 215, 640 210, 740 210" />
+          <!-- Dispatcher -> P3 Residential -->
+          <path id="path-p3" class="power-wire wire-load-p3" d="M 480 230 C 560 250, 620 345, 740 345" />
+
+          <!-- SOURCE NODES (LEFT) -->
+          <!-- Solar Farm -->
+          <g id="node-solar" class="node-group" transform="translate(60, 45)">
+            <rect class="node-card" width="130" height="80" rx="12" />
+            <circle cx="28" cy="28" r="16" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="1.5" />
+            <path d="M28 20v16M20 28h16M22 22l12 12M22 34l12-12" stroke="#f59e0b" stroke-width="1.5" />
+            <text x="52" y="26" class="node-title">Solar Plant</text>
+            <text x="52" y="38" class="node-meta">Priority 1 (Green)</text>
+            <text x="28" y="66" class="node-val val-solar" id="node-solar-val">425.0 kW</text>
+          </g>
+
+          <!-- Wind Park -->
+          <g id="node-wind" class="node-group" transform="translate(60, 170)">
+            <rect class="node-card" width="130" height="80" rx="12" />
+            <circle cx="28" cy="28" r="16" fill="rgba(6, 182, 212, 0.15)" stroke="#06b6d4" stroke-width="1.5" />
+            <g id="spinning-turbine" transform="translate(28, 28)">
+              <circle cx="0" cy="0" r="3" fill="#06b6d4" />
+              <line x1="0" y1="0" x2="0" y2="-12" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" />
+              <line x1="0" y1="0" x2="10.4" y2="6" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" />
+              <line x1="0" y1="0" x2="-10.4" y2="6" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" />
+            </g>
+            <text x="52" y="26" class="node-title">Wind Turbine</text>
+            <text x="52" y="38" class="node-meta">Priority 1 (Green)</text>
+            <text x="28" y="66" class="node-val val-wind" id="node-wind-val">115.8 kW</text>
+          </g>
+
+          <!-- Utility Grid Backup -->
+          <g id="node-backup" class="node-group" transform="translate(60, 305)">
+            <rect class="node-card" width="130" height="80" rx="12" />
+            <circle cx="28" cy="28" r="16" fill="rgba(99, 102, 241, 0.15)" stroke="#6366f1" stroke-width="1.5" />
+            <path d="M22 36l6-16 6 16M24 28h8M28 20v16" stroke="#6366f1" stroke-width="1.5" />
+            <text x="52" y="26" class="node-title">Utility Backup</text>
+            <text x="52" y="38" class="node-meta">Priority 4 (Last Resort)</text>
+            <text x="28" y="66" class="node-val val-backup" id="node-backup-val">0.0 kW</text>
+          </g>
+
+          <!-- CENTRAL DISPATCHER HUB -->
+          <g id="node-dispatcher" class="node-group-hub" transform="translate(380, 160)">
+            <!-- Outer Pulsing Rings -->
+            <circle cx="70" cy="65" r="58" class="hub-pulse-ring" />
+            <rect class="hub-card" width="140" height="130" rx="18" />
+            <circle cx="70" cy="42" r="22" class="hub-core-circle" />
+            <polygon points="68,28 77,40 70,40 72,56 63,44 70,44" fill="#ffffff" />
+            <text x="70" y="78" class="hub-title" text-anchor="middle">PowerDispatcher</text>
+            <text x="70" y="92" class="hub-sub" text-anchor="middle">Central Controller</text>
+            <text x="70" y="112" class="hub-power" id="node-hub-val" text-anchor="middle">500.0 kW</text>
+          </g>
+
+          <!-- BATTERY STORAGE (BOTTOM CENTER) -->
+          <g id="node-battery" class="node-group" transform="translate(365, 325)">
+            <rect class="node-card card-battery" id="card-battery-svg" width="170" height="96" rx="14" />
+            <circle cx="28" cy="28" r="14" fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" stroke-width="1.5" />
+            <rect x="22" y="22" width="12" height="12" rx="2" stroke="#10b981" fill="none" stroke-width="1.5" />
+            <line x1="28" y1="20" x2="28" y2="22" stroke="#10b981" stroke-width="2" />
+            <polygon id="svg-batt-bolt" class="pulsing-bolt" points="28,23 25,28 28,28 27,33 32,27 29,27" fill="#10b981" />
+            <text x="50" y="24" class="node-title">BatteryStorage</text>
+            <text x="50" y="37" class="node-meta" id="node-batt-mode">⚡ Charging (+40.8 kW)</text>
+            <!-- Progress Bar -->
+            <rect x="18" y="47" width="134" height="8" rx="4" fill="rgba(255,255,255,0.1)" />
+            <rect x="18" y="47" width="74" height="8" rx="4" fill="#10b981" id="svg-batt-fill" />
+            <text x="18" y="73" class="node-val val-battery" id="node-batt-val">400.0 / 800 kWh (50%)</text>
+            <text x="18" y="87" class="node-sub-val" id="node-batt-subval" fill="#10b981">+40.8 kW Charging Rate</text>
+          </g>
+
+          <!-- CONSUMER GRIDS (RIGHT) -->
+          <!-- P1: Industrial & Hospitals -->
+          <g id="node-ind" class="node-group" transform="translate(710, 45)">
+            <rect class="node-card" width="140" height="80" rx="12" />
+            <rect x="16" y="18" width="22" height="22" rx="4" fill="rgba(239, 68, 68, 0.2)" stroke="#ef4444" stroke-width="1.5" />
+            <path d="M22 29h10M27 24v10" stroke="#ef4444" stroke-width="2" />
+            <text x="46" y="26" class="node-title">Industrial & Hosp</text>
+            <text x="46" y="38" class="badge-priority p1-text">Priority 1 (Critical)</text>
+            <text x="18" y="66" class="node-val val-demand" id="node-ind-val">220 / 220 kW</text>
+          </g>
+
+          <!-- P2: Commercial District -->
+          <g id="node-com" class="node-group" transform="translate(710, 170)">
+            <rect class="node-card" width="140" height="80" rx="12" />
+            <rect x="16" y="18" width="22" height="22" rx="4" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="1.5" />
+            <path d="M20 22h14v14H20zM24 26h2M28 26h2M24 30h2M28 30h2" stroke="#f59e0b" stroke-width="1.5" fill="none" />
+            <text x="46" y="26" class="node-title">Commercial Dist</text>
+            <text x="46" y="38" class="badge-priority p2-text">Priority 2 (High)</text>
+            <text x="18" y="66" class="node-val val-demand" id="node-com-val">130 / 130 kW</text>
+          </g>
+
+          <!-- P3: Residential City -->
+          <g id="node-res" class="node-group" transform="translate(710, 305)">
+            <rect class="node-card" width="140" height="80" rx="12" />
+            <rect x="16" y="18" width="22" height="22" rx="4" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="1.5" />
+            <path d="M19 32v-6l8-6 8 6v6H19z" stroke="#10b981" stroke-width="1.5" fill="none" />
+            <text x="46" y="26" class="node-title">Residential City</text>
+            <text x="46" y="38" class="badge-priority p3-text">Priority 3 (Normal)</text>
+            <text x="18" y="66" class="node-val val-demand" id="node-res-val">150 / 150 kW</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Live Supply & Demand Power Cards -->
+      <div class="summary-cards-row">
+        <div class="summary-card card-demand">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="card-info">
+            <span class="card-label">TOTAL CONSUMER DEMAND</span>
+            <span class="card-value" id="card-total-demand">500.0 kW</span>
+          </div>
+        </div>
+
+        <div class="summary-card card-supplied">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div class="card-info">
+            <span class="card-label">TOTAL DISPATCHED SUPPLY</span>
+            <span class="card-value" id="card-total-supplied">500.0 kW</span>
+          </div>
+        </div>
+
+        <div class="summary-card card-battery" id="summary-card-battery">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/></svg>
+          </div>
+          <div class="card-info">
+            <span class="card-label">BATTERY STORAGE (SOC)</span>
+            <span class="card-value" id="card-battery-soc">50.0% (400 kWh)</span>
+          </div>
+        </div>
+
+        <div class="summary-card card-unmet">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="card-info">
+            <span class="card-label">UNMET LOAD / DEFICIT</span>
+            <span class="card-value" id="card-total-unmet">0.0 kW</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Battery State & Charging Dynamics HUD -->
+      <div class="battery-status-bar charging" id="battery-status-bar">
+        <div class="batt-status-icon" id="batt-status-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M11 20V13H7L13 2V9H17L11 20Z"/>
+          </svg>
+        </div>
+        <div class="batt-status-info">
+          <div class="batt-status-text" id="batt-status-text">
+            <strong>BATTERY ACTIVELY CHARGING:</strong> Storing <span id="batt-charge-rate">+40.8 kW</span> of surplus renewable power.
+          </div>
+          <div class="batt-status-sub" id="batt-status-sub">
+            Clean generation exceeds demand. Battery Bank SOC: <strong id="batt-soc-pill">50.0%</strong> (<span id="batt-energy-stored">400.0</span> / 800 kWh).
+          </div>
+        </div>
+        <div class="batt-status-meter">
+          <div class="batt-meter-gauge">
+            <div class="batt-meter-fill" id="batt-meter-fill" style="width: 50%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Power Supply & Dispatch Allocation Section -->
+      <div class="supply-allocation-section">
+        <div class="allocation-header">
+          <div class="allocation-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <h3>Live Power Supply Flow & Grid Demand Satisfaction</h3>
+          </div>
+          <div class="allocation-legend">
+            <span class="legend-pill pill-solar"><span class="dot"></span> Solar: <strong id="alloc-solar-kw">425.0 kW</strong></span>
+            <span class="legend-pill pill-wind"><span class="dot"></span> Wind: <strong id="alloc-wind-kw">115.8 kW</strong></span>
+            <span class="legend-pill pill-batt"><span class="dot"></span> Battery Discharge: <strong id="alloc-batt-kw">0.0 kW</strong></span>
+            <span class="legend-pill pill-backup"><span class="dot"></span> Grid Backup: <strong id="alloc-backup-kw">0.0 kW</strong></span>
+          </div>
+        </div>
+
+        <!-- Stacked Allocation Bar -->
+        <div class="stacked-bar-container">
+          <div class="stacked-bar" id="supply-stacked-bar">
+            <div class="bar-segment seg-solar" id="bar-solar" style="width: 85%;" title="Solar"></div>
+            <div class="bar-segment seg-wind" id="bar-wind" style="width: 15%;" title="Wind"></div>
+            <div class="bar-segment seg-batt" id="bar-batt" style="width: 0%;" title="Battery Discharge"></div>
+            <div class="bar-segment seg-backup" id="bar-backup" style="width: 0%;" title="Utility Grid Backup"></div>
+            <div class="bar-segment seg-unmet" id="bar-unmet" style="width: 0%;" title="Unmet Deficit"></div>
+          </div>
+        </div>
+
+        <!-- Sector Load Fulfillment Breakdown Grid -->
+        <div class="sector-allocation-grid">
+          <div class="sector-card" id="sector-card-p1">
+            <div class="sector-head">
+              <span class="badge-priority p1">P1</span>
+              <span class="sector-name">Industrial Zone & Hospital</span>
+            </div>
+            <div class="sector-metrics">
+              <div class="sector-metric-row">
+                <span class="sec-lbl">Demand / Supplied:</span>
+                <strong id="sec-p1-ratio">220.0 / 220.0 kW (100%)</strong>
+              </div>
+              <div class="sec-progress"><div class="sec-fill" id="sec-p1-bar" style="width: 100%;"></div></div>
+              <div class="sec-sources" id="sec-p1-sources">
+                <span class="src-tag tag-solar">☀️ Solar (220.0 kW)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sector-card" id="sector-card-p2">
+            <div class="sector-head">
+              <span class="badge-priority p2">P2</span>
+              <span class="sector-name">Commercial District</span>
+            </div>
+            <div class="sector-metrics">
+              <div class="sector-metric-row">
+                <span class="sec-lbl">Demand / Supplied:</span>
+                <strong id="sec-p2-ratio">130.0 / 130.0 kW (100%)</strong>
+              </div>
+              <div class="sec-progress"><div class="sec-fill" id="sec-p2-bar" style="width: 100%;"></div></div>
+              <div class="sec-sources" id="sec-p2-sources">
+                <span class="src-tag tag-solar">☀️ Solar (130.0 kW)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sector-card" id="sector-card-p3">
+            <div class="sector-head">
+              <span class="badge-priority p3">P3</span>
+              <span class="sector-name">Residential City</span>
+            </div>
+            <div class="sector-metrics">
+              <div class="sector-metric-row">
+                <span class="sec-lbl">Demand / Supplied:</span>
+                <strong id="sec-p3-ratio">150.0 / 150.0 kW (100%)</strong>
+              </div>
+              <div class="sec-progress"><div class="sec-fill" id="sec-p3-bar" style="width: 100%;"></div></div>
+              <div class="sec-sources" id="sec-p3-sources">
+                <span class="src-tag tag-solar">☀️ Solar (75.0 kW)</span>
+                <span class="src-tag tag-wind">💨 Wind (75.0 kW)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Live Charts & Dispatch Source Breakdown -->
+    <aside class="panel charts-panel">
+      <div class="panel-header">
+        <h2>
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          Live Telemetry & Analytics
+        </h2>
+        <span class="subtext">Real-time dispatcher logs</span>
+      </div>
+
+      <!-- Chart 1: Supply Contributions Breakdown (Donut) -->
+      <div class="chart-container-box">
+        <div class="chart-title-row">
+          <h3>Active Power Contribution Mix</h3>
+          <span class="badge-mini" id="chart-total-kw">1000 kW</span>
+        </div>
+        <div class="chart-wrapper donut-wrapper">
+          <canvas id="chart-sources-donut"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Supply vs Demand & Battery Over Time (Line) -->
+      <div class="chart-container-box">
+        <div class="chart-title-row">
+          <h3>Supply vs Demand Dynamics</h3>
+          <span class="badge-mini">Rolling 20 Cycles</span>
+        </div>
+        <div class="chart-wrapper line-wrapper">
+          <canvas id="chart-history-line"></canvas>
+        </div>
+      </div>
+
+      <!-- Dispatch Log Preview & Table Toggle -->
+      <div class="log-preview-box">
+        <div class="log-preview-header">
+          <h3>Dispatch Event Log</h3>
+          <button id="btn-export-log" class="btn btn-tiny">Export CSV</button>
+        </div>
+        <div class="log-stream" id="log-stream">
+          <!-- Real-time logged events stream here -->
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- MODAL 1: OOP Architecture & Design Structure -->
+  <div class="modal-backdrop" id="modal-oop">
+    <div class="modal-dialog modal-large">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="project-pill">SYSTEM ARCHITECTURE</span>
+          <h2>Object-Oriented Design & Project Architecture</h2>
+        </div>
+        <button class="modal-close" id="modal-oop-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Team Credits Banner -->
+        <div class="team-banner">
+          <div class="team-header">
+            <h3>Project Team (Team 4)</h3>
+            <span class="team-sub">Smart Power Routing & Load Balancing System</span>
+          </div>
+          <div class="team-cards-grid">
+            <div class="student-card">
+              <div class="student-avatar">JS</div>
+              <div class="student-info">
+                <h4>Jeevanayagam S</h4>
+                <p class="reg-no">CB.EN.U4ELC25015</p>
+                <div class="role-tag">Energy Source Modelling</div>
+                <p class="modules-desc"><code>EnergySource</code>, <code>SolarPlant</code>, <code>WindTurbine</code>, Flowchart & Documentation</p>
+              </div>
+            </div>
+
+            <div class="student-card featured-student">
+              <div class="student-avatar">VS</div>
+              <div class="student-info">
+                <h4>Vidurvarshan S A</h4>
+                <p class="reg-no">CB.EN.U4ELC25046</p>
+                <div class="role-tag">Storage & Demand Mgmt</div>
+                <p class="modules-desc"><code>BatteryStorage</code>, <code>MainGridBackup</code>, <code>ConsumerGrid</code>, Test Scenarios</p>
+              </div>
+            </div>
+
+            <div class="student-card">
+              <div class="student-avatar">YP</div>
+              <div class="student-info">
+                <h4>Yerribandi Pavani</h4>
+                <p class="reg-no">CB.EN.U4ELC25052</p>
+                <div class="role-tag">Dispatch & Load Balancing</div>
+                <p class="modules-desc"><code>PowerDispatcher</code>, Console Dashboard & Logging, Integration & Class Diagram</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 OOP Pillars Detailed Breakdown -->
+        <div class="oop-pillars-section">
+          <h3>Implementation of the 5 Core OOP Concepts</h3>
+          <div class="pillars-grid">
+            
+            <div class="pillar-card">
+              <div class="pillar-badge badge-abstraction">ABSTRACTION</div>
+              <h4>EnergySource (ABC)</h4>
+              <p>Defines abstract template for any grid energy supplier with abstract method <code>get_available_power()</code>. Hides internal complexities of sun irradiation or wind dynamics from the dispatcher.</p>
+              <pre><code>class EnergySource(ABC):
+    @abstractmethod
+    def get_available_power(self) -> float:
+        raise NotImplementedError</code></pre>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-badge badge-inheritance">INHERITANCE</div>
+              <h4>Concrete Sources</h4>
+              <p><code>SolarPlant</code>, <code>WindTurbine</code>, <code>BatteryStorage</code>, and <code>MainGridBackup</code> all inherit common attributes (<code>name</code>, <code>capacity_kw</code>) and base behavior from <code>EnergySource</code>.</p>
+              <pre><code>class SolarPlant(EnergySource):
+class WindTurbine(EnergySource):
+class BatteryStorage(EnergySource):
+class MainGridBackup(EnergySource):</code></pre>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-badge badge-polymorphism">POLYMORPHISM</div>
+              <h4>Uniform Dispatch Iteration</h4>
+              <p>The dispatcher invokes <code>source.get_available_power()</code> on every source in its list without needing to know whether it's solar, wind, battery, or utility backup.</p>
+              <pre><code>for source in self.sources:
+    # Polymorphic method call
+    available = source.get_available_power()
+    taken = min(available, needed)</code></pre>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-badge badge-encapsulation">ENCAPSULATION</div>
+              <h4>BatteryStorage Protection</h4>
+              <p><code>_current_storage_kwh</code> is strictly private and cannot be corrupted directly. It is guarded and clamped by <code>charge()</code>, <code>discharge()</code>, and <code>set_storage_kwh()</code>.</p>
+              <pre><code>self._current_storage_kwh = max(0.0, 
+    min(initial_kwh, capacity_kwh))
+def discharge(self, kwh: float):
+    actual = min(kwh, self._current_storage_kwh)
+    self._current_storage_kwh -= actual</code></pre>
+            </div>
+
+            <div class="pillar-card pillar-card-wide">
+              <div class="pillar-badge badge-composition">COMPOSITION & ASSOCIATION</div>
+              <h4>PowerDispatcher Controller</h4>
+              <p><strong>Composition:</strong> Dispatcher owns its energy sources (they are an integral part of the microgrid).<br>
+              <strong>Association:</strong> Dispatcher interacts with independent <code>ConsumerGrid</code> objects, allocating power by priority tier.</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- UML Class Hierarchy Visual Diagram -->
+        <div class="uml-diagram-section">
+          <h3>UML Class Structure</h3>
+          <div class="uml-diagram-box">
+            <div class="uml-level">
+              <div class="uml-class uml-abstract">
+                <div class="uml-header">&laquo;abstract&raquo; EnergySource</div>
+                <div class="uml-props">+ name: str<br>+ capacity_kw: float</div>
+                <div class="uml-methods">+ get_available_power(): float {abstract}</div>
+              </div>
+              <div class="uml-connector-down">&darr; &laquo;inherits&raquo;</div>
+            </div>
+
+            <div class="uml-subclasses-grid">
+              <div class="uml-class">
+                <div class="uml-header">SolarPlant</div>
+                <div class="uml-props">+ sun_intensity: float</div>
+                <div class="uml-methods">+ get_available_power()</div>
+              </div>
+              <div class="uml-class">
+                <div class="uml-header">WindTurbine</div>
+                <div class="uml-props">+ wind_speed: float</div>
+                <div class="uml-methods">+ get_available_power()</div>
+              </div>
+              <div class="uml-class">
+                <div class="uml-header">BatteryStorage</div>
+                <div class="uml-props">- _current_storage_kwh: float<br>+ capacity_kwh: float</div>
+                <div class="uml-methods">+ charge(kwh)<br>+ discharge(kwh)<br>+ get_storage_kwh()</div>
+              </div>
+              <div class="uml-class">
+                <div class="uml-header">MainGridBackup</div>
+                <div class="uml-props">+ (inherits base)</div>
+                <div class="uml-methods">+ get_available_power()</div>
+              </div>
+            </div>
+
+            <div class="uml-relations-row">
+              <div class="uml-rel-box">
+                <strong>PowerDispatcher</strong> owns 1..* <code>EnergySource</code> (Composition) &amp; routes to 1..* <code>ConsumerGrid</code> (Association)
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btn-close-oop-modal">Back to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Scenario Presets Detailed Explanations -->
+  <div class="modal-backdrop" id="modal-scenarios">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="project-pill">TEST BENCH</span>
+          <h2>Load Operational Test Profiles</h2>
+        </div>
+        <button class="modal-close" id="modal-scenarios-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">Select a test scenario to demonstrate real-time balancing, surplus absorption, deficit discharging, and emergency utility backup:</p>
+        
+        <div class="scenario-list">
+          <div class="scenario-item" data-preset="sunny-day">
+            <div class="scenario-icon">☀️</div>
+            <div class="scenario-content">
+              <h4>Sunny Afternoon (Green Surplus)</h4>
+              <p>High sun (95%), moderate wind (9 m/s). Renewable generation (580 kW) exceeds base demand. Battery actively charges.</p>
+              <span class="scenario-tag tag-green">Surplus Charging</span>
+            </div>
+          </div>
+
+          <div class="scenario-item" data-preset="calm-night">
+            <div class="scenario-icon">🌙</div>
+            <div class="scenario-content">
+              <h4>Calm Midnight (Deficit & Battery Discharge)</h4>
+              <p>Zero solar (0%), light breeze (4 m/s). Solar shuts down. Battery discharges up to 200 kW to cover residential & hospital loads.</p>
+              <span class="scenario-tag tag-amber">Battery Support</span>
+            </div>
+          </div>
+
+          <div class="scenario-item" data-preset="storm-cutoff">
+            <div class="scenario-icon">🌪️</div>
+            <div class="scenario-content">
+              <h4>Severe Gale Wind Cut-off (&gt; 25 m/s)</h4>
+              <p>Wind hits 28 m/s (exceeds cut-out threshold). Turbines automatically brake for safety. Demonstrates cubic wind curve cutoff.</p>
+              <span class="scenario-tag tag-cyan">Turbine Cut-Out</span>
+            </div>
+          </div>
+
+          <div class="scenario-item" data-preset="heavy-surge">
+            <div class="scenario-icon">🚨</div>
+            <div class="scenario-content">
+              <h4>Peak Surge / Blackout Stress Test</h4>
+              <p>Extreme industrial demand spike (750 kW) with calm weather. Battery is depleted. Utility grid backup backstop is engaged!</p>
+              <span class="scenario-tag tag-red">Grid Backstop</span>
+            </div>
+          </div>
+
+          <div class="scenario-item" data-preset="high-surplus">
+            <div class="scenario-icon">🔋</div>
+            <div class="scenario-content">
+              <h4>Full Battery Curtailment Test</h4>
+              <p>Full sun (100%), optimal wind (14 m/s) with battery already at 100% capacity. Excess renewable power is safely curtailed to protect grid frequency.</p>
+              <span class="scenario-tag tag-orange">Curtailment Warning</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: System Hardware Specifications Configuration -->
+  <div class="modal-backdrop" id="modal-config">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="project-pill">SETUP</span>
+          <h2>Microgrid System Specifications</h2>
+        </div>
+        <button class="modal-close" id="modal-config-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-config" class="config-form">
+          <div class="form-row">
+            <label for="cfg-solar">Solar Farm Capacity (kW)</label>
+            <input type="number" id="cfg-solar" value="500" min="0" max="5000" step="50">
+          </div>
+          <div class="form-row">
+            <label for="cfg-wind">Wind Turbine Capacity (kW)</label>
+            <input type="number" id="cfg-wind" value="300" min="0" max="5000" step="50">
+          </div>
+          <div class="form-row">
+            <label for="cfg-batt-power">Battery Power Rating (kW)</label>
+            <input type="number" id="cfg-batt-power" value="200" min="0" max="2000" step="25">
+          </div>
+          <div class="form-row">
+            <label for="cfg-batt-cap">Battery Energy Capacity (kWh)</label>
+            <input type="number" id="cfg-batt-cap" value="800" min="0" max="5000" step="50">
+          </div>
+          <div class="form-row">
+            <label for="cfg-batt-charge">Battery Current Energy (kWh)</label>
+            <input type="number" id="cfg-batt-charge" value="400" min="0" max="5000" step="25">
+          </div>
+          <div class="form-row">
+            <label for="cfg-backup">Utility Grid Backup Capacity (kW)</label>
+            <input type="number" id="cfg-backup" value="1000" min="0" max="10000" step="100">
+          </div>
+          <div class="form-row">
+            <label for="cfg-distribution">Load Distribution Logic</label>
+            <select id="cfg-distribution">
+              <option value="priority" selected>Priority-Based (P1 Industry &gt; P2 Comm &gt; P3 Res)</option>
+              <option value="proportional">Proportional Sharing Across All Grids</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="btn-reset-specs">Reset Defaults</button>
+            <button type="submit" class="btn btn-primary">Save Specifications</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Toggle & Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
